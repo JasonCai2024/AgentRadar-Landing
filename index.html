@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentRadar - Ambient Desktop HUD for Multi-Agent Coding</title>
+  <meta name="description" content="Stop Alt-Tabbing blindly. Real-time status tracking, pending approval alerts, and 1-click window focus for Google AntiGravity, OpenAI Codex, Qoder, and MiniMax.">
+  <link rel="icon" type="image/x-icon" href="assets/icon.ico">
+  
+  <!-- OpenGraph / Social Cards -->
+  <meta property="og:title" content="AgentRadar - Ambient Desktop HUD for Multi-Agent Coding">
+  <meta property="og:description" content="Monitor your background AI agents in a minimalist desktop HUD. 1-click focus and live state tracking.">
+  <meta property="og:image" content="assets/AgentRadar_product_1200x630.png">
+  <meta property="og:type" content="website">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            cyanAccent: {
+              400: '#38bdf8',
+              500: '#0ea5e9',
+            },
+            darkBg: '#080c16',
+            cardBg: '#0f172a',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 6s ease-in-out infinite;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-[#080c16] text-slate-100 font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Glow Accents in Background -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-brand-500/15 via-cyanAccent-500/10 to-transparent blur-3xl pointer-events-none -z-10 animate-pulse-slow"></div>
+  <div class="fixed top-1/3 -right-60 w-[600px] h-[600px] bg-blue-600/10 blur-[140px] pointer-events-none -z-10"></div>
+
+  <!-- Navbar -->
+  <header class="sticky top-0 z-50 glass-card border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="assets/logo.png" alt="AgentRadar Logo" class="w-9 h-9 rounded-full shadow-lg shadow-brand-500/20">
+        <span class="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+          AgentRadar
+          <span class="text-xs px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 font-semibold border border-brand-500/30">v0.6.1</span>
+        </span>
+      </div>
+
+      <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+        <a href="#features" class="hover:text-brand-400 transition" data-i18n="nav_features">Features</a>
+        <a href="#how-it-works" class="hover:text-brand-400 transition" data-i18n="nav_how">How it Works</a>
+        <a href="#compatibility" class="hover:text-brand-400 transition" data-i18n="nav_compat">Compatibility</a>
+        <a href="#pricing" class="hover:text-brand-400 transition" data-i18n="nav_pricing">Download & Pricing</a>
+        <a href="#faq" class="hover:text-brand-400 transition" data-i18n="nav_faq">FAQ</a>
+      </nav>
+
+      <div class="flex items-center space-x-4">
+        <!-- Language Switcher Toggle -->
+        <button id="lang-toggle" onclick="toggleLanguage()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+          <i data-lucide="globe" class="w-3.5 h-3.5 text-cyanAccent-400"></i>
+          <span id="lang-label">中文</span>
+        </button>
+
+        <a href="#pricing" class="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-emerald-600 hover:from-brand-500 hover:to-emerald-500 rounded-lg shadow-lg shadow-brand-500/25 transition transform hover:-translate-y-0.5">
+          <span data-i18n="nav_cta">Get Lifetime $10</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-20 pb-24 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <!-- Top Pill Badge -->
+      <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-brand-500/40 text-xs font-medium text-brand-400 mb-8 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+        <span data-i18n="hero_badge">Desktop Ambient HUD for Multi-Agent Coding</span>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-5xl mx-auto leading-[1.15]">
+        <span data-i18n="hero_title_1">Stop Alt-Tabbing Blindly.</span><br>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyanAccent-400 via-brand-400 to-emerald-300" data-i18n="hero_title_2">Track All Your AI Agents in One Place.</span>
+      </h1>
+
+      <!-- Subheadline -->
+      <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed" data-i18n="hero_desc">
+        Ambient real-time state monitoring (Thinking / Waiting / Done), pending approval alerts, and instant 1-click window focus for Google AntiGravity, Codex, Qoder & MiniMax.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#pricing" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-gradient-to-r from-emerald-500 to-brand-600 hover:from-emerald-400 hover:to-brand-500 rounded-xl shadow-xl shadow-brand-500/30 transition transform hover:-translate-y-0.5 group">
+          <i data-lucide="zap" class="w-5 h-5 mr-2 text-emerald-200 group-hover:scale-110 transition"></i>
+          <span data-i18n="hero_cta_buy">Buy Lifetime License ($10)</span>
+        </a>
+        <a href="https://github.com/JasonCai2024/AgentRadar/releases" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-slate-200 bg-slate-900/90 hover:bg-slate-800 rounded-xl border border-slate-700 hover:border-slate-600 transition">
+          <i data-lucide="download" class="w-5 h-5 mr-2 text-cyanAccent-400"></i>
+          <span data-i18n="hero_cta_beta">Free Community Beta (.exe)</span>
+        </a>
+      </div>
+
+      <!-- Trust Badges -->
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+        <span class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-1.5"></i> <span data-i18n="badge_win">Windows 10/11 64-bit</span></span>
+        <span class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-1.5"></i> <span data-i18n="badge_exe">Single Portable .exe</span></span>
+        <span class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-1.5"></i> <span data-i18n="badge_local">100% Local & Zero Telemetry</span></span>
+        <span class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-1.5"></i> <span data-i18n="badge_mac">macOS Beta in Community Test</span></span>
+      </div>
+
+      <!-- Hero Visual Showcase -->
+      <div class="mt-14 relative max-w-5xl mx-auto rounded-2xl p-2 glass-card shadow-2xl shadow-cyanAccent-500/10">
+        <img src="assets/AgentRadar_product_1200x630.png" alt="AgentRadar Dashboard Preview" class="rounded-xl w-full h-auto border border-slate-700/80 shadow-2xl">
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem vs Solution (Why AgentRadar?) -->
+  <section class="py-20 border-t border-slate-800/80 bg-slate-950/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white" data-i18n="pvs_title">The Multi-Agent Multitasking Chaos</h2>
+        <p class="mt-4 text-slate-400" data-i18n="pvs_subtitle">When you run 3 to 5 autonomous AI coding agents at once, your biggest bottleneck isn't AI intelligence—it's context switching.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Before -->
+        <div class="p-8 rounded-2xl bg-red-950/20 border border-red-500/20">
+          <div class="flex items-center space-x-3 text-red-400 font-bold text-lg mb-6">
+            <i data-lucide="x-circle" class="w-6 h-6"></i>
+            <span data-i18n="pvs_before_title">Without AgentRadar (The Alt-Tab Nightmare)</span>
+          </div>
+          <ul class="space-y-4 text-slate-300 text-sm">
+            <li class="flex items-start">
+              <span class="text-red-400 mr-3 text-lg leading-none">×</span>
+              <span data-i18n="pvs_b1"><strong>Black-box Blind Switching:</strong> You constantly tab between windows just to check if the AI finished generating or is still stuck reasoning.</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-red-400 mr-3 text-lg leading-none">×</span>
+              <span data-i18n="pvs_b2"><strong>Silent Approval Blockers:</strong> AI stops waiting for terminal confirmation (Pending Approval), sitting idle for 20+ minutes unnoticed.</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-red-400 mr-3 text-lg leading-none">×</span>
+              <span data-i18n="pvs_b3"><strong>Scattered Window Clutter:</strong> 5+ separate windows buried across virtual desktops and a crowded taskbar.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- After -->
+        <div class="p-8 rounded-2xl bg-brand-950/20 border border-brand-500/30">
+          <div class="flex items-center space-x-3 text-brand-400 font-bold text-lg mb-6">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+            <span data-i18n="pvs_after_title">With AgentRadar (Ambient Flow State)</span>
+          </div>
+          <ul class="space-y-4 text-slate-300 text-sm">
+            <li class="flex items-start">
+              <span class="text-brand-400 mr-3 text-lg leading-none">✓</span>
+              <span data-i18n="pvs_a1"><strong>Glanceable Radar States:</strong> Emerald glow = thinking; Amber pulse = approval needed; Slate dim = dormant.</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-brand-400 mr-3 text-lg leading-none">✓</span>
+              <span data-i18n="pvs_a2"><strong>Instant 1-Click Window Focus:</strong> Click any session card to immediately un-minimize and bring its window to the front.</span>
+            </li>
+            <li class="flex items-start">
+              <span class="text-brand-400 mr-3 text-lg leading-none">✓</span>
+              <span data-i18n="pvs_a3"><strong>Zero Overhead:</strong> 0% idle CPU, single portable .exe, passive SQLite/JSONL stream inspection with zero code modifications.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Features Section -->
+  <section id="features" class="py-24 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-20">
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white" data-i18n="feat_title">Designed for Real Multi-Agent Engineering</h2>
+        <p class="mt-4 text-slate-400" data-i18n="feat_desc">Engineered specifically for Windows power users orchestrating parallel coding agents.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Feature 1 -->
+        <div class="glass-card p-6 rounded-2xl transition hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center mb-5 text-brand-400">
+            <i data-lucide="radio" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f1_title">Mini Floating Radar Orb</h3>
+          <p class="text-sm text-slate-400 leading-relaxed" data-i18n="f1_desc">
+            A minimalist always-on-top radar ball. Ambient emerald breathing glow with active concurrency counter. Drags anywhere with coordinate persistence.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="glass-card p-6 rounded-2xl transition hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-cyanAccent-500/10 border border-cyanAccent-500/30 flex items-center justify-center mb-5 text-cyanAccent-400">
+            <i data-lucide="layout-grid" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f2_title">Granular Session HUD</h3>
+          <p class="text-sm text-slate-400 leading-relaxed" data-i18n="f2_desc">
+            Deep SQLite/JSONL inspection breaks down individual active threads for AntiGravity, Codex, and Qoder without confusing aggregate numbers.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="glass-card p-6 rounded-2xl transition hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-5 text-emerald-400">
+            <i data-lucide="external-link" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f3_title">Instant 1-Click Focus</h3>
+          <p class="text-sm text-slate-400 leading-relaxed" data-i18n="f3_desc">
+            Low-level Win32 API hooks un-minimize and bring the exact target window into the foreground in milliseconds. Zero taskbar hunting.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="glass-card p-6 rounded-2xl transition hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-5 text-amber-400">
+            <i data-lucide="bell-ring" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f4_title">Pending Approval Alerts</h3>
+          <p class="text-sm text-slate-400 leading-relaxed" data-i18n="f4_desc">
+            Amber glowing pulse with an alert badge immediately warns you when a terminal command or file write is waiting for manual authorization.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compatibility Matrix -->
+  <section id="compatibility" class="py-20 border-t border-slate-800/80 bg-slate-950/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white" data-i18n="compat_title">Supported GUI AI Agents</h2>
+        <p class="mt-4 text-slate-400" data-i18n="compat_desc">Seamless passive integration. Works out of the box with zero plugins or configuration needed.</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="glass-card p-5 rounded-xl text-center">
+          <div class="text-brand-400 font-bold mb-1">Google AntiGravity</div>
+          <div class="text-xs text-slate-400" data-i18n="c_ag">Multi-session threads</div>
+          <span class="inline-block mt-3 px-2 py-0.5 rounded text-[11px] bg-brand-500/20 text-brand-300 font-medium">Native Ready</span>
+        </div>
+        <div class="glass-card p-5 rounded-xl text-center">
+          <div class="text-cyanAccent-400 font-bold mb-1">OpenAI Codex</div>
+          <div class="text-xs text-slate-400" data-i18n="c_codex">Deep logic & review</div>
+          <span class="inline-block mt-3 px-2 py-0.5 rounded text-[11px] bg-brand-500/20 text-brand-300 font-medium">Native Ready</span>
+        </div>
+        <div class="glass-card p-5 rounded-xl text-center">
+          <div class="text-purple-400 font-bold mb-1">Qoder (Qcode)</div>
+          <div class="text-xs text-slate-400" data-i18n="c_qoder">Tool calls & streams</div>
+          <span class="inline-block mt-3 px-2 py-0.5 rounded text-[11px] bg-brand-500/20 text-brand-300 font-medium">Native Ready</span>
+        </div>
+        <div class="glass-card p-5 rounded-xl text-center">
+          <div class="text-yellow-400 font-bold mb-1">MiniMax Code</div>
+          <div class="text-xs text-slate-400" data-i18n="c_mm">Active task states</div>
+          <span class="inline-block mt-3 px-2 py-0.5 rounded text-[11px] bg-brand-500/20 text-brand-300 font-medium">Native Ready</span>
+        </div>
+        <div class="glass-card p-5 rounded-xl text-center">
+          <div class="text-pink-400 font-bold mb-1">WorkBuddy</div>
+          <div class="text-xs text-slate-400" data-i18n="c_wb">Project automation</div>
+          <span class="inline-block mt-3 px-2 py-0.5 rounded text-[11px] bg-brand-500/20 text-brand-300 font-medium">Native Ready</span>
+        </div>
+      </div>
+
+      <!-- macOS Note Banner -->
+      <div class="mt-8 p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between flex-wrap gap-4 max-w-4xl mx-auto">
+        <div class="flex items-center space-x-3">
+          <i data-lucide="apple" class="w-6 h-6 text-slate-300"></i>
+          <div>
+            <div class="text-sm font-semibold text-white" data-i18n="mac_title">Are you on macOS?</div>
+            <div class="text-xs text-slate-400" data-i18n="mac_desc">macOS CLI and menubar adaptation is currently in active community testing! You can access the source code on GitHub to modify it for your environment.</div>
+          </div>
+        </div>
+        <a href="https://github.com/JasonCai2024/AgentRadar" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition" data-i18n="mac_cta">View GitHub Source →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing & Download Section -->
+  <section id="pricing" class="py-24 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-white" data-i18n="price_title">Choose Your License</h2>
+        <p class="mt-4 text-slate-400" data-i18n="price_desc">Whether you are a community tester or want a lifetime commercial license, get started in seconds.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <!-- Community Beta Card -->
+        <div class="glass-card p-8 rounded-2xl flex flex-col justify-between">
+          <div>
+            <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 mb-4" data-i18n="c_tag">Free & Open for Community</div>
+            <h3 class="text-2xl font-bold text-white" data-i18n="c_title">Community Beta Edition</h3>
+            <p class="mt-2 text-sm text-slate-400" data-i18n="c_sub">Ideal for community members, developers building Mac adapters, and testers.</p>
+            
+            <div class="mt-6 flex items-baseline">
+              <span class="text-4xl font-extrabold text-white">$0</span>
+              <span class="ml-2 text-sm text-slate-400" data-i18n="c_free">Free forever</span>
+            </div>
+
+            <ul class="mt-6 space-y-3 text-sm text-slate-300">
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="cb_1">Windows 10/11 Standalone .exe</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="cb_2">Full access to GitHub source code</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="cb_3">Community WeChat support & feedback</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="cb_4">Baidu Wangpan mirror download</span></li>
+            </ul>
+          </div>
+
+          <div class="mt-8 space-y-3">
+            <a href="https://github.com/JasonCai2024/AgentRadar/releases" target="_blank" class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold text-white border border-slate-700 transition">
+              <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+              <span data-i18n="btn_dl_beta">Download Beta (.exe)</span>
+            </a>
+            <div class="text-center text-xs text-slate-400">
+              <span data-i18n="baidu_hint">国内会员若遇 GitHub 慢，请微信群内联系取百度网盘直链</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pro Lifetime Card -->
+        <div class="glass-card p-8 rounded-2xl border-brand-500/50 shadow-2xl shadow-brand-500/10 flex flex-col justify-between relative">
+          <div class="absolute -top-3.5 right-6 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-brand-500 to-emerald-500 text-slate-950 uppercase tracking-wide">
+            Popular
+          </div>
+
+          <div>
+            <div class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-brand-500/20 text-brand-400 mb-4" data-i18n="pro_tag">Lifetime License</div>
+            <h3 class="text-2xl font-bold text-white" data-i18n="pro_title">AgentRadar Pro (Commercial)</h3>
+            <p class="mt-2 text-sm text-slate-400" data-i18n="pro_sub">For professional developers, solo founders, and global power users.</p>
+
+            <div class="mt-6 flex items-baseline">
+              <span class="text-5xl font-extrabold text-white">$10</span>
+              <span class="ml-2 text-sm text-slate-400" data-i18n="pro_pay">One-time payment</span>
+            </div>
+
+            <ul class="mt-6 space-y-3 text-sm text-slate-300">
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="pb_1">All 5 Agent Clients Fully Supported</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="pb_2">Lifetime Free Version Updates</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="pb_3">Instant Waffo Pancake Global Checkout</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="pb_4">Credit Card, PayPal, Apple Pay, Alipay, WeChat</span></li>
+              <li class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-2"></i> <span data-i18n="pb_5">Priority Email & Commercial Support</span></li>
+            </ul>
+          </div>
+
+          <div class="mt-8">
+            <a href="https://checkout.waffo.ai/" target="_blank" class="w-full inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-brand-600 hover:from-emerald-400 hover:to-brand-500 text-sm font-bold text-white shadow-lg shadow-brand-500/25 transition transform hover:-translate-y-0.5">
+              <i data-lucide="credit-card" class="w-4 h-4 mr-2"></i>
+              <span data-i18n="btn_buy_now">Get Lifetime License ($10)</span>
+            </a>
+            <div class="mt-2 text-center text-xs text-slate-400" data-i18n="pancake_note">Processed securely via Waffo Pancake Merchant of Record.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-20 border-t border-slate-800/80 bg-slate-950/40">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-extrabold text-white" data-i18n="faq_title">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="space-y-6">
+        <div class="glass-card p-6 rounded-xl">
+          <h4 class="text-base font-bold text-white mb-2" data-i18n="q1">Does AgentRadar collect my source code or AI conversations?</h4>
+          <p class="text-sm text-slate-400" data-i18n="a1">Absolutely not. AgentRadar is a 100% local, offline-capable executable. It operates by passively reading the local state databases and session transcript streams generated by your installed agents on your Windows disk. Zero data is ever uploaded.</p>
+        </div>
+        <div class="glass-card p-6 rounded-xl">
+          <h4 class="text-base font-bold text-white mb-2" data-i18n="q2">How does the 1-Click Window Focus work?</h4>
+          <p class="text-sm text-slate-400" data-i18n="a2">AgentRadar leverages native low-level Windows APIs (including AttachThreadInput and SetForegroundWindow) to instantly un-minimize and focus the target GUI window, bypassing Windows foreground lock restrictions.</p>
+        </div>
+        <div class="glass-card p-6 rounded-xl">
+          <h4 class="text-base font-bold text-white mb-2" data-i18n="q3">What are the plans for macOS support?</h4>
+          <p class="text-sm text-slate-400" data-i18n="a3">The core event-driven state engine is written in Python and is highly modular. Our community members are currently testing macOS menubar and AppleScript-based window focus implementations. The open-source repository contains the full architecture for community adaptation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-slate-800/80 text-center text-sm text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <img src="assets/logo.png" alt="Logo" class="w-6 h-6 rounded-full">
+        <span class="text-white font-semibold">AgentRadar</span>
+        <span>© 2026 CC AI Lab. All rights reserved.</span>
+      </div>
+      <div class="flex items-center space-x-6 text-xs text-slate-400">
+        <a href="https://github.com/JasonCai2024/AgentRadar" target="_blank" class="hover:text-white transition flex items-center gap-1"><i data-lucide="github" class="w-4 h-4"></i> GitHub</a>
+        <a href="mailto:contact@ccailab.top" class="hover:text-white transition">Contact</a>
+        <a href="https://j1rmhgdlcjb.feishu.cn/wiki/NtBEwixuFiT4DhkMZXScUnIynMd" target="_blank" class="hover:text-white transition" data-i18n="footer_doc">Feishu Manual</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bilingual Dictionary & Logic -->
+  <script>
+    const translations = {
+      en: {
+        nav_features: "Features",
+        nav_how: "How it Works",
+        nav_compat: "Compatibility",
+        nav_pricing: "Download & Pricing",
+        nav_faq: "FAQ",
+        nav_cta: "Get Lifetime $10",
+        hero_badge: "Desktop Ambient HUD for Multi-Agent Coding",
+        hero_title_1: "Stop Alt-Tabbing Blindly.",
+        hero_title_2: "Track All Your AI Agents in One Place.",
+        hero_desc: "Ambient real-time state monitoring (Thinking / Waiting / Done), pending approval alerts, and instant 1-click window focus for Google AntiGravity, Codex, Qoder & MiniMax.",
+        hero_cta_buy: "Buy Lifetime License ($10)",
+        hero_cta_beta: "Free Community Beta (.exe)",
+        badge_win: "Windows 10/11 64-bit",
+        badge_exe: "Single Portable .exe",
+        badge_local: "100% Local & Zero Telemetry",
+        badge_mac: "macOS Beta in Community Test",
+        pvs_title: "The Multi-Agent Multitasking Chaos",
+        pvs_subtitle: "When you run 3 to 5 autonomous AI coding agents at once, your biggest bottleneck isn't AI intelligence—it's context switching.",
+        pvs_before_title: "Without AgentRadar (The Alt-Tab Nightmare)",
+        pvs_b1: "Black-box Blind Switching: You constantly tab between windows just to check if the AI finished generating or is still stuck reasoning.",
+        pvs_b2: "Silent Approval Blockers: AI stops waiting for terminal confirmation (Pending Approval), sitting idle for 20+ minutes unnoticed.",
+        pvs_b3: "Scattered Window Clutter: 5+ separate windows buried across virtual desktops and a crowded taskbar.",
+        pvs_after_title: "With AgentRadar (Ambient Flow State)",
+        pvs_a1: "Glanceable Radar States: Emerald glow = thinking; Amber pulse = approval needed; Slate dim = dormant.",
+        pvs_a2: "Instant 1-Click Window Focus: Click any session card to immediately un-minimize and bring its window to the front.",
+        pvs_a3: "Zero Overhead: 0% idle CPU, single portable .exe, passive SQLite/JSONL stream inspection with zero code modifications.",
+        feat_title: "Designed for Real Multi-Agent Engineering",
+        feat_desc: "Engineered specifically for Windows power users orchestrating parallel coding agents.",
+        f1_title: "Mini Floating Radar Orb",
+        f1_desc: "A minimalist always-on-top radar ball. Ambient emerald breathing glow with active concurrency counter. Drags anywhere with coordinate persistence.",
+        f2_title: "Granular Session HUD",
+        f2_desc: "Deep SQLite/JSONL inspection breaks down individual active threads for AntiGravity, Codex, and Qoder without confusing aggregate numbers.",
+        f3_title: "Instant 1-Click Focus",
+        f3_desc: "Low-level Win32 API hooks un-minimize and bring the exact target window into the foreground in milliseconds. Zero taskbar hunting.",
+        f4_title: "Pending Approval Alerts",
+        f4_desc: "Amber glowing pulse with an alert badge immediately warns you when a terminal command or file write is waiting for manual authorization.",
+        compat_title: "Supported GUI AI Agents",
+        compat_desc: "Seamless passive integration. Works out of the box with zero plugins or configuration needed.",
+        c_ag: "Multi-session threads",
+        c_codex: "Deep logic & review",
+        c_qoder: "Tool calls & streams",
+        c_mm: "Active task states",
+        c_wb: "Project automation",
+        mac_title: "Are you on macOS?",
+        mac_desc: "macOS CLI and menubar adaptation is currently in active community testing! You can access the source code on GitHub to modify it for your environment.",
+        mac_cta: "View GitHub Source →",
+        price_title: "Choose Your License",
+        price_desc: "Whether you are a community tester or want a lifetime commercial license, get started in seconds.",
+        c_tag: "Free & Open for Community",
+        c_title: "Community Beta Edition",
+        c_sub: "Ideal for community members, developers building Mac adapters, and testers.",
+        c_free: "Free forever",
+        cb_1: "Windows 10/11 Standalone .exe",
+        cb_2: "Full access to GitHub source code",
+        cb_3: "Community WeChat support & feedback",
+        cb_4: "Baidu Wangpan mirror download",
+        btn_dl_beta: "Download Beta (.exe)",
+        baidu_hint: "国内会员若遇 GitHub 慢，请微信群内联系取百度网盘直链",
+        pro_tag: "Lifetime License",
+        pro_title: "AgentRadar Pro (Commercial)",
+        pro_sub: "For professional developers, solo founders, and global power users.",
+        pro_pay: "One-time payment",
+        pb_1: "All 5 Agent Clients Fully Supported",
+        pb_2: "Lifetime Free Version Updates",
+        pb_3: "Instant Waffo Pancake Global Checkout",
+        pb_4: "Credit Card, PayPal, Apple Pay, Alipay, WeChat",
+        pb_5: "Priority Email & Commercial Support",
+        btn_buy_now: "Get Lifetime License ($10)",
+        pancake_note: "Processed securely via Waffo Pancake Merchant of Record.",
+        faq_title: "Frequently Asked Questions",
+        q1: "Does AgentRadar collect my source code or AI conversations?",
+        a1: "Absolutely not. AgentRadar is a 100% local, offline-capable executable. It operates by passively reading the local state databases and session transcript streams generated by your installed agents on your Windows disk. Zero data is ever uploaded.",
+        q2: "How does the 1-Click Window Focus work?",
+        a2: "AgentRadar leverages native low-level Windows APIs (including AttachThreadInput and SetForegroundWindow) to instantly un-minimize and focus the target GUI window, bypassing Windows foreground lock restrictions.",
+        q3: "What are the plans for macOS support?",
+        a3: "The core event-driven state engine is written in Python and is highly modular. Our community members are currently testing macOS menubar and AppleScript-based window focus implementations. The open-source repository contains the full architecture for community adaptation.",
+        footer_doc: "Feishu Manual"
+      },
+      zh: {
+        nav_features: "核心功能",
+        nav_how: "运行机制",
+        nav_compat: "兼容生态",
+        nav_pricing: "下载与授权",
+        nav_faq: "常见问题",
+        nav_cta: "获取终身版 $10",
+        hero_badge: "专为多智能体并发打造的桌面透视雷达",
+        hero_title_1: "告别任务栏盲目盲切。",
+        hero_title_2: "多智能体并发状态，一屏尽在掌握。",
+        hero_desc: "实时穿透感知 AntiGravity、Codex、Qoder、MiniMax 会话级运行状态（思考中 / 待命 / 待审批），点击卡片瞬间唤出置顶窗口。",
+        hero_cta_buy: "购买终身商业版 ($10)",
+        hero_cta_beta: "社群免费内测版 (.exe)",
+        badge_win: "Windows 10/11 64位原生",
+        badge_exe: "单文件绿色免安装",
+        badge_local: "100% 纯本地运行 · 零数据上传",
+        badge_mac: "macOS 版本社群积极适配中",
+        pvs_title: "多智能体多开的真实困境",
+        pvs_subtitle: "当你同时打开 3 到 5 个 AI 智能体协同写代码时，最大的瓶颈不再是模型智力，而是来回切窗带来的注意力碎片化。",
+        pvs_before_title: "没有 AgentRadar 之前（盲切噩梦）",
+        pvs_b1: "黑盒盲目切换：频繁在任务栏翻找，不知道切过去时 AI 是在写代码、在思考，还是早已经结束了。",
+        pvs_b2: "卡住无感知：AI 在执行敏感命令时停下来等待人工按回车确认（待审批），开发者干等半小时才发现。",
+        pvs_b3: "窗口杂乱堆叠：5 个以上的客户端窗口散落在不同虚拟桌面和任务栏，找一个窗口要点三四次。",
+        pvs_after_title: "拥有 AgentRadar 之后（专注心流）",
+        pvs_a1: "桌面环境感知：翡翠绿光 = 正在思考；琥珀黄光闪烁 = 待审批确认；深板岩灰 = 全员待命休眠。",
+        pvs_a2: "1秒极速穿透切窗：在看板卡片上单击，底层 Win32 API 毫秒级还原并置顶对应原生窗口。",
+        pvs_a3: "极致轻量无感：0% 空闲 CPU 占用，免安装单文件，旁路解析 SQLite/JSONL 流，无需修改原有任何工作流。",
+        feat_title: "专为极客工程打造的核心能力",
+        feat_desc: "深入 Windows 底层与智能体运行时，为多开并发场景量身定制。",
+        f1_title: "桌面微型悬浮雷达球",
+        f1_desc: "常驻桌面的迷你雷达球，带呼吸光晕与并发任务计数角标。鼠标随心拖拽，自动记忆屏幕坐标。",
+        f2_title: "细粒度单会话独立看板",
+        f2_desc: "深度穿透解析 SQLite 与 JSONL 消息流，单行独立呈现每个会话的运行态与结束时间，拒绝粗暴合并。",
+        f3_title: "1-Click 穿透式切窗",
+        f3_desc: "调用 Windows 底层 Win32 穿透 API，瞬间激活目标进程窗口并强行置顶，彻底告别在任务栏翻找。",
+        f4_title: "待审批拦截高亮告警",
+        f4_desc: "当智能体需要终端授权或敏感工具审批时，雷达球与看板发出琥珀色醒目警示，防止任务在后台干等。",
+        compat_title: "深度适配的智能体客户端",
+        compat_desc: "零配置开箱即用，自动穿透本地进程与日志数据库。",
+        c_ag: "多会话独立分行感知",
+        c_codex: "严密逻辑审查与测试",
+        c_qoder: "实时工具调用与流式感知",
+        c_mm: "专项代码与工作态监测",
+        c_wb: "任务自动化流水线协作",
+        mac_title: "您是 Mac 电脑用户？",
+        mac_desc: "macOS 菜单栏与自动化版本目前正在社群进行活跃内测！会员可直接访问 GitHub 源代码参与针对 Mac 系统的定制与改造。",
+        mac_cta: "前往 GitHub 查看源码 →",
+        price_title: "选择您的使用方案",
+        price_desc: "无论是社群尝鲜还是商业终身授权，一分钟内即可开启高效体验。",
+        c_tag: "社群免费与开源探索",
+        c_title: "社群内测免费版",
+        c_sub: "适合社群会员、跨平台适配开发者与尝鲜用户交流使用。",
+        c_free: "社群永久免费",
+        cb_1: "Windows 10/11 单文件免安装 .exe",
+        cb_2: "完全开放 GitHub 源码（可自主改造）",
+        cb_3: "微信社群技术交流与反馈通道",
+        cb_4: "提供百度网盘国内备用高速下载",
+        btn_dl_beta: "免费下载内测版 (.exe)",
+        baidu_hint: "国内会员若遇 GitHub 慢，请微信群内联系取百度网盘直链",
+        pro_tag: "终身商业许可",
+        pro_title: "AgentRadar Pro 终身版",
+        pro_sub: "面向海外客户、商业开发者与一人公司（OPC）践行者。",
+        pro_pay: "一次性买断，终身可用",
+        pb_1: "全平台 5 大智能体完整支持",
+        pb_2: "终身免费版本升级与新特性更新",
+        pb_3: "Waffo Pancake 海外合规自动收银台",
+        pb_4: "支持信用卡、PayPal、Apple Pay、支付宝与微信",
+        pb_5: "优先邮件技术支持与专属工单",
+        btn_buy_now: "获取终身商业版 ($10)",
+        pancake_note: "通过 Waffo Pancake 全球商户网络安全结算与自动发信交付。",
+        faq_title: "常见问题解答",
+        q1: "AgentRadar 会收集我的代码或聊天记录吗？",
+        a1: "绝对不会。AgentRadar 是一款 100% 纯本地运行的桌面软件，它仅在本地内存中旁路读取各个客户端已生成在您硬盘上的 SQLite 数据库和 JSONL 文本流水，没有任何后台上报或网络追踪。",
+        q2: "一键切窗置顶的底层原理是什么？",
+        a2: "AgentRadar 使用原生 Win32 API（包括 AttachThreadInput 与 SetForegroundWindow 穿透技术），克服了 Windows 系统原生的前台抢占锁，能精确将最小化到后台的目标窗口强行前置。",
+        q3: "对苹果电脑（macOS）的支持计划是怎样的？",
+        a3: "核心状态监控引擎采用跨平台 Python 编写，模块化极高。目前社群会员正在基于 AppleScript 与 macOS 状态栏进行定制。我们在 GitHub 完全开放了核心设计，欢迎会员共同参与构建！",
+        footer_doc: "飞书详细图文文档"
+      }
+    };
+
+    let currentLang = 'en';
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'zh' : 'en';
+      document.getElementById('lang-label').innerText = currentLang === 'en' ? '中文' : 'English';
+      
+      const elements = document.querySelectorAll('[data-i18n]');
+      elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang] && translations[currentLang][key]) {
+          el.innerText = translations[currentLang][key];
+        }
+      });
+      lucide.createIcons();
+    }
+
+    // Initialize Lucide icons
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
