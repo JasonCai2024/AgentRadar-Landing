@@ -139,9 +139,24 @@
         <span class="flex items-center"><i data-lucide="check" class="w-4 h-4 text-brand-400 mr-1.5"></i> <span data-i18n="badge_mac">macOS Beta in Community Test</span></span>
       </div>
 
-      <!-- Hero Visual Showcase -->
-      <div class="mt-14 relative max-w-5xl mx-auto rounded-2xl p-2 glass-card shadow-2xl shadow-cyanAccent-500/10">
-        <img src="assets/AgentRadar_product_1200x630.png" alt="AgentRadar Dashboard Preview" class="rounded-xl w-full h-auto border border-slate-700/80 shadow-2xl">
+      <!-- Hero Visual Showcase / Interactive Demo Video -->
+      <div id="how-it-works" class="mt-14 relative max-w-5xl mx-auto rounded-2xl p-2 glass-card shadow-2xl shadow-cyanAccent-500/10 scroll-mt-24">
+        <div class="relative rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl bg-slate-950 aspect-video group">
+          <video id="hero-demo-player" controls playsinline preload="metadata" poster="assets/AgentRadar_product_1200x630.png" class="w-full h-full object-contain">
+            <source src="assets/demo_en.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <div class="mt-3 flex flex-col sm:flex-row items-center justify-between px-2 text-xs text-slate-400 gap-2">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span data-i18n="demo_caption">Official 56s Demo: Multi-agent tracking, 1-click window focus & floating orb in action</span>
+          </span>
+          <a href="https://www.bilibili.com/video/BV1ne4s63EcA/" target="_blank" class="hover:text-cyanAccent-400 transition inline-flex items-center gap-1 text-slate-400 hover:text-slate-200">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span data-i18n="bilibili_mirror">Bilibili HD Mirror (BV1ne4s63EcA)</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -445,6 +460,8 @@
         badge_exe: "Single Portable .exe",
         badge_local: "100% Local & Zero Telemetry",
         badge_mac: "macOS Beta in Community Test",
+        demo_caption: "Official 56s Demo: Multi-agent tracking, 1-click window focus & floating orb in action",
+        bilibili_mirror: "Bilibili HD Mirror (BV1ne4s63EcA)",
         pvs_title: "The Multi-Agent Multitasking Chaos",
         pvs_subtitle: "When you run 3 to 5 autonomous AI coding agents at once, your biggest bottleneck isn't AI intelligence—it's context switching.",
         pvs_before_title: "Without AgentRadar (The Alt-Tab Nightmare)",
@@ -524,6 +541,8 @@
         badge_exe: "单文件绿色免安装",
         badge_local: "100% 纯本地运行 · 零数据上传",
         badge_mac: "macOS 版本社群积极适配中",
+        demo_caption: "56秒官方实操演示：多智能体并发追踪、一键唤醒聚焦与桌角小球监控",
+        bilibili_mirror: "B站超清镜像 (BV1ne4s63EcA)",
         pvs_title: "多智能体多开的真实困境",
         pvs_subtitle: "当你同时打开 3 到 5 个 AI 智能体协同写代码时，最大的瓶颈不再是模型智力，而是来回切窗带来的注意力碎片化。",
         pvs_before_title: "没有 AgentRadar 之前（盲切噩梦）",
